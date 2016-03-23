@@ -1,0 +1,5 @@
+*.zip
+*data
+cs276*
+*.pdf
+.DS_Store
