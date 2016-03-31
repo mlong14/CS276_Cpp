@@ -126,8 +126,10 @@ void mergeBlocks(vector<string> blocknames) {
 
 	// remove unnessecary files
 	string tmp_fn;
-	tmp_fn = OUTPUT + term_pointers_name;
-	remove(tmp_fn.c_str());
+	for (int i=0; i<blocknames.size(); i++) {
+		tmp_fn = OUTPUT + blocknames[i];
+		remove(tmp_fn.c_str());
+	}
 	
 	tmp_fn = OUTPUT + block_out_name;
 	remove(tmp_fn.c_str());
@@ -194,7 +196,6 @@ int main(int argc, char* argv[]) {
 				}
 			}	
 			indexing_file.close();
-			//break;
 		}
 
 		sort(term_doc_pairs.begin(),term_doc_pairs.end(),postingPairComparator);
