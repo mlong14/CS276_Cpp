@@ -26,7 +26,6 @@ BaseIndex *INDEX;
 
 void mergeBlocks(vector<string> blocknames) {
 	// N-way merge
-	
 	cout << "Merging..." << endl;
 	
 	vector<ifstream*> block_streams;
@@ -60,27 +59,31 @@ void mergeBlocks(vector<string> blocknames) {
 	int curr_tid;
 
 	PostingList *pl_out;
-	set<int> curr_postings;
 	vector<int> curr_list;
 	vector<int> out_postings;
 	priority_queue<tid_triples> tid_mappings;
+
+	ofstream tmp(OUTPUT + "tmp",ios::out);
  
 	while (block_pls.size()>=1) {
 		curr_tid = block_pls.top().GetTermID();
-		curr_postings.clear();
 		out_postings.clear();
+
 		while ((block_pls.top().GetTermID() == curr_tid) && (block_pls.size()>=1)) {
 			tmp_pl = block_pls.top();
 			block_pls.pop();
 			tmp_pl.GetList( curr_list );
 			for (int i=0; i<curr_list.size(); i++) {
-				curr_postings.insert(curr_list[i]);
+				out_postings.push_back(curr_list[i]);
 			}
 		}
-		copy(curr_postings.begin(),curr_postings.end(),back_inserter(out_postings));
+
 		sort(out_postings.begin(),out_postings.end());
 		
 		tid_mappings.push((tid_triples){curr_tid, out_postings.size(), block_out.tellp()});
+
+		tmp << curr_tid << "\t" << out_postings.size() << endl;
+
 		pl_out = new PostingList(curr_tid,out_postings);
 		INDEX->writePosting( block_out, *pl_out);
 		delete pl_out;
@@ -97,8 +100,11 @@ void mergeBlocks(vector<string> blocknames) {
 			}
 			tid2ind[curr_tid].pop_front();
 		}
+
 		tid2ind.erase(curr_tid);
 	}
+
+	tmp.close();
 
 	block_out.close();
 	block_int.open(OUTPUT+block_out_name, ios::binary);
@@ -139,9 +145,19 @@ int main(int argc, char* argv[]) {
 	cout << "Indexing...\n";
 	
 	//string index_type(argv[0]);
-	//string data_dir(argv[1]);
-	
-	DATA = ROOT+"toy_data/";
+	if ((argc > 1) && (string(argv[1]) == "toy")) {
+		cout << "Running with toy" << endl;
+		DATA = ROOT+"toy_data/";
+	}
+	else if ((argc > 1) && (string(argv[1]) == "full")) {
+		cout << "Running with full" << endl;
+		DATA = ROOT+"data/";
+	}
+	else {
+		cout << "Running with tiny" << endl;
+		DATA = ROOT+"tiny_data/";
+	}
+
 	OUTPUT = ROOT + "pa1/output/";
 	string index_type = "Basic";
 
@@ -177,12 +193,13 @@ int main(int argc, char* argv[]) {
 	
 	//Read files into posting lists
 	for (size_t i = 0; i<dir_list.size(); i++) {
+		cout << "Processing block " << i << endl;
 		file_list = listFiles(get<1>(dir_list.at(i)));
 		term_doc_pairs.clear();
 
 		for (size_t j = 0; j<file_list.size(); j++) {
 			doc_dict[get<0>(dir_list.at(i)) + "/" + get<0>(file_list.at(j))] = doc_id++;	
-			indexing_file.open(get<1>(file_list.at(j)),ios::binary);
+			indexing_file.open(get<1>(file_list.at(j)),ios::in);
 			if (indexing_file.is_open()) {
 				while (getline(indexing_file,line)) {
 					line_stream.str(line);
@@ -203,10 +220,13 @@ int main(int argc, char* argv[]) {
 		out_fn = OUTPUT + get<0>(dir_list[i]);
 		output_file.open(out_fn,ios::binary);
 		blocknames.push_back(get<0>(dir_list[i]));
-		
+
 		if (output_file.is_open()) {
 			prev = -1;
-			for (size_t k = 0; k<term_doc_pairs.size(); k++) {
+			postings.clear();
+			docs_seen.clear();
+
+			for (size_t k = 0; k < term_doc_pairs.size(); k++) {
 				if ((prev != -1) && (get<1>(term_doc_pairs[k]) != prev)) {
 					tmp_pl = new PostingList(prev,postings);
 					INDEX->writePosting(output_file,*tmp_pl);
@@ -214,7 +234,9 @@ int main(int argc, char* argv[]) {
 
 					prev = get<1>(term_doc_pairs[k]);
 					postings.clear();
+					docs_seen.clear();
 					postings.push_back(get<0>(term_doc_pairs[k]));
+					docs_seen.insert(get<0>(term_doc_pairs[k]));
 				}
 				else {
 					prev = get<1>(term_doc_pairs[k]);
@@ -239,6 +261,7 @@ int main(int argc, char* argv[]) {
 	//Merge blocks	
 	mergeBlocks(blocknames);
 
+	//Write out dict files
 	ofstream termID_out, docID_out;
 	termID_out.open(OUTPUT + "term.dict",ios::out);
 	docID_out.open(OUTPUT + "doc.dict",ios::out);
@@ -254,8 +277,11 @@ int main(int argc, char* argv[]) {
 	termID_out.close();
 	docID_out.close();
 
+
+	// Display time
 	duration = difftime(time(0), start);
 	cout << "Duration: " << duration << " seconds" << endl;
+	cout.flush();
 
 	return 0;
 }
