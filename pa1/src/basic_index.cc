@@ -13,7 +13,7 @@ void BasicIndex::writePosting(std::ofstream &f_out, const PostingList &p) {
 	f_out.write(reinterpret_cast<const char *>(&tid), sizeof(int));
 	f_out.write(reinterpret_cast<const char *>(&pllen), sizeof(size_t));
 	
-	for (int i=0;i<docs.size();i++) {
+	for (size_t i=0;i<docs.size();i++) {
 		f_out.write(reinterpret_cast<const char *>(&docs[i]), sizeof(int));
 	}
 }

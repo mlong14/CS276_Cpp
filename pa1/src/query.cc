@@ -126,7 +126,7 @@ int main(int arc, char* argv[]) {
 		}
 
 		try {
-			for (int i=0; i<tokens.size(); i++) {
+			for (size_t i=0; i<tokens.size(); i++) {
 				tid = term_dict.at(tokens[i]);
 				f_p = postings_dict.at(tid);
 				index_f.seekg(f_p);
@@ -141,7 +141,7 @@ int main(int arc, char* argv[]) {
 				}
 			}
 
-			for (int i=0; i<out_docs.size(); i++) {
+			for (size_t i=0; i<out_docs.size(); i++) {
 				cout << doc_dict[out_docs[i]] << endl;
 			}
 		

@@ -17,7 +17,7 @@ QUERY_S := $(addprefix $(SRCDIR)/,$(QUERY_SOURCES))
 INDEX_OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(INDEX_S:.$(SRCEXT)=.o))
 QUERY_OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(QUERY_S:.$(SRCEXT)=.o))
 
-CFLAGS := -O0 -Wall -g
+CFLAGS := -O1 -Wall -Wextra -pedantic -ansi -g
 LIB := -L lib
 INC := -I ./include
 

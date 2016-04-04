@@ -38,7 +38,7 @@ void mergeBlocks(vector<string> blocknames) {
 	priority_queue<PostingList, vector<PostingList>, greater<PostingList> > block_pls;
 	map<int, deque<int> > tid2ind;	
 	
-	for (int i=0; i<blocknames.size(); i++) {
+	for (size_t i=0; i<blocknames.size(); i++) {
 		ifstream *tmp_stream = new ifstream();
 		tmp_stream->open(OUTPUT+blocknames[i], ios::binary);
 		block_streams.push_back(tmp_stream);
@@ -58,10 +58,11 @@ void mergeBlocks(vector<string> blocknames) {
 	int peek_char;
 	int curr_tid;
 
-	PostingList *pl_out;
+	PostingList *pl_out = nullptr;
 	vector<int> curr_list;
 	vector<int> out_postings;
 	priority_queue<tid_triples> tid_mappings;
+	tid_triples tid_trip;
 
 	ofstream tmp(OUTPUT + "tmp",ios::out);
  
@@ -73,14 +74,18 @@ void mergeBlocks(vector<string> blocknames) {
 			tmp_pl = block_pls.top();
 			block_pls.pop();
 			tmp_pl.GetList( curr_list );
-			for (int i=0; i<curr_list.size(); i++) {
+			for (size_t i=0; i<curr_list.size(); i++) {
 				out_postings.push_back(curr_list[i]);
 			}
 		}
 
 		sort(out_postings.begin(),out_postings.end());
 		
-		tid_mappings.push((tid_triples){curr_tid, out_postings.size(), block_out.tellp()});
+		tid_trip.tid = curr_tid;
+		tid_trip.posting_size = out_postings.size();
+		tid_trip.pl_pos = block_out.tellp();
+		// tid_mappings.push((tid_triples){curr_tid, out_postings.size(), block_out.tellp()});
+		tid_mappings.push(tid_trip);
 
 		tmp << curr_tid << "\t" << out_postings.size() << endl;
 
@@ -122,7 +127,7 @@ void mergeBlocks(vector<string> blocknames) {
 	}
 	
 	// close all files
-	for (int i=0; i<block_streams.size(); i++) {
+	for (size_t i=0; i<block_streams.size(); i++) {
 		block_streams[i]->close();
 		delete block_streams[i];
 	}
@@ -132,7 +137,7 @@ void mergeBlocks(vector<string> blocknames) {
 
 	// remove unnessecary files
 	string tmp_fn;
-	for (int i=0; i<blocknames.size(); i++) {
+	for (size_t i=0; i<blocknames.size(); i++) {
 		tmp_fn = OUTPUT + blocknames[i];
 		remove(tmp_fn.c_str());
 	}
@@ -177,7 +182,7 @@ int main(int argc, char* argv[]) {
 	int doc_id = 0;
 	int word_id = 0;
 	int prev;
-	PostingList *tmp_pl;
+	PostingList *tmp_pl = nullptr;
 	string line;
 	string word;
 	string out_fn;
@@ -198,7 +203,7 @@ int main(int argc, char* argv[]) {
 		term_doc_pairs.clear();
 
 		for (size_t j = 0; j<file_list.size(); j++) {
-			doc_dict[get<0>(dir_list.at(i)) + "/" + get<0>(file_list.at(j))] = doc_id++;	
+			doc_dict[get<0>(dir_list.at(i)) + "/" + get<0>(file_list.at(j))] = doc_id++;
 			indexing_file.open(get<1>(file_list.at(j)),ios::in);
 			if (indexing_file.is_open()) {
 				while (getline(indexing_file,line)) {
