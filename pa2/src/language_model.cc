@@ -116,6 +116,14 @@ void LanguageModel::createDictionaries(std::string input) {
 
 }
 
+void LanguageModel::getUni(lm_map &_uni) {
+	_uni = unigram_f;
+}
+
+void LanguageModel::getBi(lm_map &_bi) {
+	_bi = bigram_f;
+}
+
 std::ostream& operator<< (std::ostream &os, const LanguageModel &lm) {
 	
 	for (lm_map::const_iterator iter = lm.bigram_f.begin(); iter != lm.bigram_f.end(); iter++) {
@@ -133,11 +141,6 @@ std::ostream& operator<< (std::ostream &os, const LanguageModel &lm) {
 
 std::istream& operator>> (std::istream &is, LanguageModel &lm) {
 	
-	if (LanguageModel::_lm) {
-		std::cerr << "Language Model already loaded" << std::endl;
-		exit(0);
-	}
-
 	std::stringstream line_stream;
 	std::string line, first_word, second_word;
 	double score;
@@ -164,6 +167,5 @@ std::istream& operator>> (std::istream &is, LanguageModel &lm) {
 			}
 		}
 	}
-
 	return is;
 }

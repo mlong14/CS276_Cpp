@@ -13,8 +13,9 @@ class LanguageModel {
 	public:
 		static LanguageModel* getInstance(std::string input = "");
 		static void destroy();
-		static LanguageModel* load(std::string input);
-		void save(std::string output);
+		void getUni(std::map<std::string, double> &_uni);
+		void getBi(std::map<std::string, double> &_bi);
+
 		friend std::ostream& operator<< (std::ostream &os, const LanguageModel &lm);
 		friend std::istream& operator>> (std::istream &is, LanguageModel &lm);
 	private:
